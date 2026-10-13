@@ -1,16 +1,151 @@
-<h1>Личный кабинет</h1>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет</title>
 
-<p>Имя: {{ name }}</p>
-<p>Фамилия: {{ surname }}</p>
-<p>Email: {{ user.email }}</p>
-<p>Баланс: {{ balance }} ₽</p>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
 
-<button>Отдать деньги</button>
+        .card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
 
-<br><br>
+        h1, h3 {
+            text-align: center;
+        }
 
-<button>Запрос к нейросети</button>
+        p {
+            font-size: 18px;
+        }
 
-<br><br>
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
 
-<a href="/logout">Выйти</a>
+        .money-button {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .ai-button {
+            background-color: #007bff;
+            color: white;
+        }
+
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            resize: vertical;
+        }
+
+        #aiAnswer {
+            margin-top: 15px;
+            white-space: pre-wrap;
+        }
+
+        .logout {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+
+        <h1>Личный кабинет</h1>
+
+        <p><strong>Имя:</strong> {{ name }}</p>
+        <p><strong>Фамилия:</strong> {{ surname }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Баланс:</strong> {{ balance }} ₽</p>
+
+        <form action="/give_money" method="post">
+            <button class="money-button" type="submit">
+                Отдать 100 ₽
+            </button>
+        </form>
+
+        <hr>
+
+        <h3>Спросить нейросеть</h3>
+
+        <textarea
+            id="question"
+            rows="4"
+            placeholder="Напиши вопрос..."
+        ></textarea>
+
+        <button class="ai-button" id="aiButton">
+            Спросить
+        </button>
+
+        <p id="aiAnswer"></p>
+
+        <a class="logout" href="/logout">Выйти</a>
+
+    </div>
+
+    <script>
+        const aiButton = document.getElementById("aiButton");
+        const aiAnswer = document.getElementById("aiAnswer");
+
+        aiButton.addEventListener("click", async function() {
+            const question = document.getElementById("question").value;
+
+            if (!question.trim()) {
+                aiAnswer.textContent = "Введите вопрос";
+                return;
+            }
+
+            aiAnswer.textContent = "Нейросеть думает...";
+
+            try {
+                const response = await fetch("/ask_ai", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        question: question
+                    })
+                });
+
+                const data = await response.json();
+
+                aiAnswer.textContent = data.answer;
+
+            } catch (error) {
+                aiAnswer.textContent = "Ошибка при запросе к нейросети";
+            }
+        });
+    </script>
+
+</body>
+</html>

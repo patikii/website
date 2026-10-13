@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
 import os
 from dotenv import load_dotenv
+import requests
 load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
@@ -135,11 +136,58 @@ def profile():
         balance=session["balance"]
     )
 
+@app.route("/give_money", methods=["POST"])
+def give_money():
+    if "user_email" not in session:
+        return redirect("/login")
+
+    if session["balance"] >= 100:
+        session["balance"] -= 100
+
+    return redirect("/profile")
+
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/login")
 
+@app.route("/ask_ai", methods=["POST"])
+def ask_ai():
+    if "user_email" not in session:
+        return jsonify({
+            "success": False,
+            "answer": "Сначала войдите в аккаунт"
+        })
+
+    req = request.get_json()
+    question = req["question"]
+
+    response = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "model": "openrouter/free",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": question
+                }
+            ]
+        },
+        timeout=30
+    )
+
+    data = response.json()
+
+    answer = data["choices"][0]["message"]["content"]
+
+    return jsonify({
+        "success": True,
+        "answer": answer
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)
