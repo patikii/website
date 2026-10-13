@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Регистрация</title>
+
     <style>
-        /* Те же стили, что и на странице входа */
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f2f5;
@@ -52,13 +52,12 @@
         button {
             width: 100%;
             padding: 10px;
-            background-color: #28a745; /* Зеленый цвет для регистрации (отличие) */
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            transition: background 0.3s;
             margin-top: 10px;
         }
 
@@ -66,7 +65,6 @@
             background-color: #218838;
         }
 
-        /* Дополнительный стиль для ссылки внизу */
         .switch-link {
             text-align: center;
             margin-top: 15px;
@@ -81,47 +79,123 @@
         .switch-link a:hover {
             text-decoration: underline;
         }
+
+        #message {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="card">
         <h2>Регистрация</h2>
-        <form action="/user_register" method="post" id="67">
-            <!-- Поле Имя -->
+
+        <form id="registerForm">
+
             <div class="form-group">
-                <label for="fullname">Ваше имя</label>
-                <input type="text" id="fullname" name="fullname" placeholder="Иван Иванов" required>
+                <label for="name">Ваше имя</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Иван Иванов"
+                    required
+                >
             </div>
 
-            <!-- Поле Email -->
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="example@mail.ru" required>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="example@mail.ru"
+                    required
+                >
             </div>
 
-            <!-- Поле Пароль -->
             <div class="form-group">
                 <label for="password">Пароль</label>
-                <input type="password" id="password" name="password" placeholder="Придумайте пароль" required>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Придумайте пароль"
+                    required
+                >
             </div>
 
-            <!-- Поле Повтор пароля -->
             <div class="form-group">
                 <label for="confirm_password">Повторите пароль</label>
-                <input type="password" id="confirm_password" name="confirm_password" placeholder="Повторите пароль" required>
+                <input
+                    type="password"
+                    id="confirm_password"
+                    name="confirm_password"
+                    placeholder="Повторите пароль"
+                    required
+                >
             </div>
 
             <button type="submit">Зарегистрироваться</button>
         </form>
 
-        <!-- Ссылка на вход -->
+        <p id="message"></p>
+
         <div class="switch-link">
             Уже есть аккаунт? <a href="/login">Войти</a>
         </div>
     </div>
 
+
+    <script>
+        const form = document.getElementById("registerForm");
+        const message = document.getElementById("message");
+
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const confirmPassword =
+                document.getElementById("confirm_password").value;
+
+            if (password !== confirmPassword) {
+                message.textContent = "Пароли не совпадают";
+                message.style.color = "red";
+                return;
+            }
+
+            const response = await fetch("/user_register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            message.textContent = data.message;
+
+            if (data.success) {
+                message.style.color = "green";
+
+                setTimeout(function() {
+                    window.location.href = "/login";
+                }, 1000);
+            } else {
+                message.style.color = "red";
+            }
+        });
+    </script>
+
 </body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js" integrity="sha512-+k1pnlgt4F1H8L7t3z95o3/KO+o78INEcXTbnoJQ/F2VqDVhWoaiVml/OEHv9HsVgxUaVW+IbiZPUJQfF/YxZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="../static/script.js"></script>
 </html>
