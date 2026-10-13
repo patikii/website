@@ -1,17 +1,16 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Личный кабинет</title>
-</head>
-<body>
+<h1>Личный кабинет</h1>
 
-    <h1>Личный кабинет</h1>
+<p>Имя: {{ name }}</p>
+<p>Фамилия: {{ surname }}</p>
+<p>Email: {{ user.email }}</p>
+<p>Баланс: {{ balance }} ₽</p>
 
-    <p>Имя: {{ user.username }}</p>
-    <p>Email: {{ user.email }}</p>
+<button>Отдать деньги</button>
 
-    <a href="/logout">Выйти</a>
+<br><br>
 
-</body>
-</html>
+<button>Запрос к нейросети</button>
+
+<br><br>
+
+<a href="/logout">Выйти</a>

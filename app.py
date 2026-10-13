@@ -86,6 +86,8 @@ def user_login():
 
     if check_password_hash(user["password_hash"], password):
         session["user_email"] = user["email"]
+        session["balance"] = 1000
+
         return jsonify({
             "success": True,
             "message": "Вход выполнен"
@@ -98,7 +100,6 @@ def user_login():
 
 @app.route("/profile")
 def profile():
-
     if "user_email" not in session:
         return redirect("/login")
 
@@ -117,7 +118,22 @@ def profile():
     cur.close()
     cnx.close()
 
-    return render_template("profile.html", user=user)
+    fullname = user["username"].split(" ", 1)
+
+    name = fullname[0]
+
+    if len(fullname) > 1:
+        surname = fullname[1]
+    else:
+        surname = ""
+
+    return render_template(
+        "profile.html",
+        user=user,
+        name=name,
+        surname=surname,
+        balance=session["balance"]
+    )
 
 @app.route("/logout")
 def logout():
