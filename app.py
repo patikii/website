@@ -1,17 +1,19 @@
 from flask import Flask, render_template, request, jsonify, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
 app = Flask(__name__)
-app.secret_key = "my-super-secret-key"
+app.secret_key = os.getenv("SECRET_KEY")
 
 def get_db_connection():
     return mysql.connector.connect(
-        host="185.114.247.43",
-        port=3306,
-        database="sch688_vvedenie",
-        user="sch688_vvedenie",
-        password="Qwerty123"
+        host=os.getenv("DB_HOST"),
+        port=int(os.getenv("DB_PORT")),
+        database=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
     )
 
 
