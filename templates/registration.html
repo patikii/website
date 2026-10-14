@@ -12,7 +12,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
 
@@ -61,29 +61,9 @@
             margin-top: 10px;
         }
 
-        button:hover {
-            background-color: #218838;
-        }
-
         .switch-link {
             text-align: center;
             margin-top: 15px;
-            font-size: 14px;
-        }
-
-        .switch-link a {
-            color: #007bff;
-            text-decoration: none;
-        }
-
-        .switch-link a:hover {
-            text-decoration: underline;
-        }
-
-        #message {
-            text-align: center;
-            margin-top: 15px;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -93,7 +73,7 @@
     <div class="card">
         <h2>Регистрация</h2>
 
-        <form id="registerForm">
+        <form action="/user_register" method="post">
 
             <div class="form-group">
                 <label for="name">Ваше имя</label>
@@ -101,7 +81,7 @@
                     type="text"
                     id="name"
                     name="name"
-                    placeholder="Иван Иванов"
+                    placeholder="Анна Иванова"
                     required
                 >
             </div>
@@ -123,7 +103,6 @@
                     type="password"
                     id="password"
                     name="password"
-                    placeholder="Придумайте пароль"
                     required
                 >
             </div>
@@ -134,68 +113,21 @@
                     type="password"
                     id="confirm_password"
                     name="confirm_password"
-                    placeholder="Повторите пароль"
                     required
                 >
             </div>
 
-            <button type="submit">Зарегистрироваться</button>
+            <button type="submit">
+                Зарегистрироваться
+            </button>
         </form>
 
-        <p id="message"></p>
-
         <div class="switch-link">
-            Уже есть аккаунт? <a href="/login">Войти</a>
+            Уже есть аккаунт?
+            <a href="/login">Войти</a>
         </div>
+
     </div>
-
-
-    <script>
-        const form = document.getElementById("registerForm");
-        const message = document.getElementById("message");
-
-        form.addEventListener("submit", async function(event) {
-            event.preventDefault();
-
-            const name = document.getElementById("name").value;
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            const confirmPassword =
-                document.getElementById("confirm_password").value;
-
-            if (password !== confirmPassword) {
-                message.textContent = "Пароли не совпадают";
-                message.style.color = "red";
-                return;
-            }
-
-            const response = await fetch("/user_register", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    name: name,
-                    email: email,
-                    password: password
-                })
-            });
-
-            const data = await response.json();
-
-            message.textContent = data.message;
-
-            if (data.success) {
-                message.style.color = "green";
-
-                setTimeout(function() {
-                    window.location.href = "/login";
-                }, 1000);
-            } else {
-                message.style.color = "red";
-            }
-        });
-    </script>
 
 </body>
 </html>

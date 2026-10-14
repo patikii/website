@@ -4,9 +4,13 @@ import mysql.connector
 import os
 from dotenv import load_dotenv
 import requests
+
+
 load_dotenv()
+
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
+
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -14,7 +18,8 @@ def get_db_connection():
         port=int(os.getenv("DB_PORT")),
         database=os.getenv("DB_NAME"),
         user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD")
+        password=os.getenv("DB_PASSWORD"),
+        connection_timeout=5
     )
 
 
@@ -28,13 +33,16 @@ def login():
     return render_template("login.html")
 
 
+# РЕГИСТРАЦИЯ
 @app.route("/user_register", methods=["POST"])
 def user_register():
-    req = request.get_json()
+    name = request.form["name"]
+    email = request.form["email"]
+    password = request.form["password"]
+    confirm_password = request.form["confirm_password"]
 
-    name = req["name"]
-    email = req["email"]
-    password = req["password"]
+    if password != confirm_password:
+        return "Пароли не совпадают", 400
 
     password_hash = generate_password_hash(password)
 
@@ -54,11 +62,10 @@ def user_register():
     cur.close()
     cnx.close()
 
-    return jsonify({
-        "success": True,
-        "message": "Пользователь зарегистрирован"
-    })
+    return redirect("/login")
 
+
+# ВХОД
 @app.route("/user_login", methods=["POST"])
 def user_login():
     req = request.get_json()
@@ -99,6 +106,8 @@ def user_login():
         "message": "Неверный пароль"
     })
 
+
+# ЛИЧНЫЙ КАБИНЕТ
 @app.route("/profile")
 def profile():
     if "user_email" not in session:
@@ -119,6 +128,10 @@ def profile():
     cur.close()
     cnx.close()
 
+    if user is None:
+        session.clear()
+        return redirect("/login")
+
     fullname = user["username"].split(" ", 1)
 
     name = fullname[0]
@@ -136,6 +149,8 @@ def profile():
         balance=session["balance"]
     )
 
+
+# ОТДАТЬ ДЕНЬГИ
 @app.route("/give_money", methods=["POST"])
 def give_money():
     if "user_email" not in session:
@@ -146,11 +161,8 @@ def give_money():
 
     return redirect("/profile")
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/login")
 
+# НЕЙРОСЕТЬ
 @app.route("/ask_ai", methods=["POST"])
 def ask_ai():
     if "user_email" not in session:
@@ -162,32 +174,53 @@ def ask_ai():
     req = request.get_json()
     question = req["question"]
 
-    response = requests.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
-            "Content-Type": "application/json"
-        },
-        json={
-            "model": "openrouter/free",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": question
-                }
-            ]
-        },
-        timeout=30
-    )
+    try:
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "openrouter/free",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": question
+                    }
+                ]
+            },
+            timeout=30
+        )
 
-    data = response.json()
+        data = response.json()
 
-    answer = data["choices"][0]["message"]["content"]
+        if "choices" not in data:
+            return jsonify({
+                "success": False,
+                "answer": "Ошибка нейросети"
+            })
 
-    return jsonify({
-        "success": True,
-        "answer": answer
-    })
+        answer = data["choices"][0]["message"]["content"]
+
+        return jsonify({
+            "success": True,
+            "answer": answer
+        })
+
+    except Exception:
+        return jsonify({
+            "success": False,
+            "answer": "Не удалось получить ответ нейросети"
+        })
+
+
+# ВЫХОД
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
