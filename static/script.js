@@ -9,7 +9,7 @@ $(document).ready(function(){
         }
         if (err == 0){
             $.ajax({
-                url: '/user_register',
+                url: '/api/user_register',
                 method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
@@ -20,4 +20,46 @@ $(document).ready(function(){
             })
         }
     })
+
+    $('#login-form').on('submit', function(e){
+        e.preventDefault();
+        $.ajax({
+            url: '/api/login',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                email: $('#username').val(),
+                password: $('#password').val()
+            })
+        }).done(function(){
+            window.location.href = '/profile';
+        }).fail(function(){
+            alert('Неверный email или пароль');
+        });
+    });
+
+    $('#chat-form').on('submit', function (e) {
+        e.preventDefault();
+        var text = $('#chat-input').val().trim();
+        if (!text) return;
+
+        var $msgs = $('#chat-messages');
+        $msgs.append($('<div class="msg user"></div>').text(text));
+        $('#chat-input').val('');
+        $msgs.scrollTop($msgs[0].scrollHeight);
+
+        $.ajax({
+            url: '/api/chat',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ message: text })
+        }).done(function (res) {
+            $msgs.append($('<div class="msg bot"></div>').text(res.reply));
+            $msgs.scrollTop($msgs[0].scrollHeight);
+        }).fail(function () {
+            $msgs.append($('<div class="msg bot"></div>').text('Ошибка: сервер не ответил'));
+            $msgs.scrollTop($msgs[0].scrollHeight);
+        });
+    });
+    
 })

@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Личный кабинет</title>
-
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,138 +13,120 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px 0;
+            box-sizing: border-box;
         }
-
         .card {
             background-color: white;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 500px;
+            max-width: 440px;
         }
-
-        h1, h3 {
+        .card h2 {
             text-align: center;
+            margin: 0 0 20px 0;
+            color: #333;
         }
-
-        p {
-            font-size: 18px;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
+        .card h3 {
+            margin: 25px 0 10px 0;
+            color: #333;
             font-size: 16px;
         }
-
-        .money-button {
-            background-color: #28a745;
-            color: white;
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
         }
+        .row:last-of-type { border-bottom: none; }
+        .label { color: #666; }
+        .value { color: #333; font-weight: bold; }
 
-        .ai-button {
-            background-color: #007bff;
-            color: white;
-        }
-
-        textarea {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            resize: vertical;
-        }
-
-        #aiAnswer {
-            margin-top: 15px;
-            white-space: pre-wrap;
-        }
-
-        .logout {
+        .btn {
             display: block;
-            margin-top: 20px;
+            width: 100%;
+            padding: 10px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
             text-align: center;
+            text-decoration: none;
+            box-sizing: border-box;
+            margin-top: 15px;
+            transition: background 0.3s;
+        }
+        .btn-primary { background-color: #007bff; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-danger { background-color: #dc3545; }
+        .btn-danger:hover { background-color: #b02a37; }
+
+        #chat-messages {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            height: 220px;
+            overflow-y: auto;
+            background: #fafafa;
+            margin-bottom: 10px;
+        }
+        .msg {
+            margin-bottom: 8px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            max-width: 85%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        .msg.user {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .msg.bot { background: #e9ecef; color: #333; }
+        #chat-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            resize: vertical;
+            min-height: 50px;
+            font-family: inherit;
+            font-size: 14px;
         }
     </style>
 </head>
-
 <body>
-
     <div class="card">
+        <h2>Личный кабинет</h2>
 
-        <h1>Личный кабинет</h1>
+        <div class="row"><span class="label">Баланс</span><span class="value">{{ user.balance }}</span></div>
+        <div class="row"><span class="label">Имя</span><span class="value">{{ user.username }}</span></div>
+        <div class="row"><span class="label">Email</span><span class="value">{{ user.email }}</span></div>
 
-        <p><strong>Имя:</strong> {{ name }}</p>
-        <p><strong>Фамилия:</strong> {{ surname }}</p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Баланс:</strong> {{ balance }} ₽</p>
+        <a href="/transactions" class="btn btn-primary">Транзакции</a>
 
-        <form action="/give_money" method="post">
-            <button class="money-button" type="submit">
-                Отдать 100 ₽
-            </button>
+        <h3>Чат с нейронкой</h3>
+        <div id="chat-messages"></div>
+        <form id="chat-form">
+            <textarea id="chat-input" placeholder="Ваше сообщение..." required></textarea>
+            <button type="submit" class="btn btn-primary">Отправить</button>
         </form>
 
-        <hr>
-
-        <h3>Спросить нейросеть</h3>
-
-        <textarea
-            id="question"
-            rows="4"
-            placeholder="Напиши вопрос..."
-        ></textarea>
-
-        <button class="ai-button" id="aiButton">
-            Спросить
-        </button>
-
-        <p id="aiAnswer"></p>
-
-        <a class="logout" href="/logout">Выйти</a>
-
+        <form action="/logout" method="post">
+            <button type="submit" class="btn btn-danger">Выйти</button>
+        </form>
     </div>
 
-    <script>
-        const aiButton = document.getElementById("aiButton");
-        const aiAnswer = document.getElementById("aiAnswer");
-
-        aiButton.addEventListener("click", async function() {
-            const question = document.getElementById("question").value;
-
-            if (!question.trim()) {
-                aiAnswer.textContent = "Введите вопрос";
-                return;
-            }
-
-            aiAnswer.textContent = "Нейросеть думает...";
-
-            try {
-                const response = await fetch("/ask_ai", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        question: question
-                    })
-                });
-
-                const data = await response.json();
-
-                aiAnswer.textContent = data.answer;
-
-            } catch (error) {
-                aiAnswer.textContent = "Ошибка при запросе к нейросети";
-            }
-        });
-    </script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js"
+            integrity="sha512-+k1pnlgt4F1H8L7t3z95o3/KO+o78INEcXTbnoJQ/F2VqDVhWoaiVml/OEHv9HsVgxUaVW+IbiZPUJQfF/YxZw=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="../static/script.js"></script>
 </body>
 </html>
